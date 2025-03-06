@@ -15,7 +15,7 @@ pub struct OxrEntry(pub openxr::Entry);
 
 impl OxrEntry {
     /// Enumerate available extensions for this OpenXR runtime.
-    pub fn enumerate_extensions(&self) -> Result<OxrExtensions> {
+    pub fn enumerate_extensions(&self) -> crate::types::Result<OxrExtensions> {
         Ok(self.0.enumerate_extensions().map(Into::into)?)
     }
 
@@ -28,7 +28,7 @@ impl OxrEntry {
         exts: OxrExtensions,
         layers: &[&str],
         backend: GraphicsBackend,
-    ) -> Result<OxrInstance> {
+    ) -> crate::types::Result<OxrInstance> {
         let available_exts = self.enumerate_extensions()?;
 
         if !backend.is_available(&available_exts) {
@@ -53,7 +53,7 @@ impl OxrEntry {
     }
 
     /// Returns a list of all of the backends the OpenXR runtime supports.
-    pub fn available_backends(&self) -> Result<Vec<GraphicsBackend>> {
+    pub fn available_backends(&self) -> crate::types::Result<Vec<GraphicsBackend>> {
         Ok(GraphicsBackend::available_backends(
             &self.enumerate_extensions()?,
         ))
@@ -105,7 +105,7 @@ impl OxrInstance {
     pub fn init_graphics(
         &self,
         system_id: openxr::SystemId,
-    ) -> Result<(WgpuGraphics, SessionCreateInfo)> {
+    ) -> crate::types::Result<(WgpuGraphics, SessionCreateInfo)> {
         graphics_match!(
             self.1;
             _ => {
@@ -128,9 +128,9 @@ impl OxrInstance {
         system_id: openxr::SystemId,
         info: SessionCreateInfo,
         chain: &mut OxrSessionCreateNextChain,
-    ) -> Result<(OxrSession, OxrFrameWaiter, OxrFrameStream)> {
+    ) -> crate::types::Result<(OxrSession, OxrFrameWaiter, OxrFrameStream)> {
         if !info.0.using_graphics_of_val(&self.1) {
-            return Err(OxrError::GraphicsBackendMismatch {
+            return crate::types::Result::Err(OxrError::GraphicsBackendMismatch {
                 item: std::any::type_name::<SessionCreateInfo>(),
                 backend: info.0.graphics_name(),
                 expected_backend: self.1.graphics_name(),
@@ -180,7 +180,7 @@ impl OxrFrameStream {
         display_time: openxr::Time,
         environment_blend_mode: openxr::EnvironmentBlendMode,
         layers: &[&dyn CompositionLayer],
-    ) -> Result<()> {
+    ) -> crate::types::Result<()> {
         graphics_match!(
             &mut self.0;
             stream => {
@@ -233,7 +233,7 @@ impl OxrSwapchain {
     /// Determine the index of the next image to render to in the swapchain image array.
     ///
     /// Calls [`acquire_image`](openxr::Swapchain::acquire_image) internally.
-    pub fn acquire_image(&mut self) -> Result<u32> {
+    pub fn acquire_image(&mut self) -> crate::types::Result<u32> {
         graphics_match!(
             &mut self.0;
             swap => Ok(swap.acquire_image()?)
@@ -243,7 +243,7 @@ impl OxrSwapchain {
     /// Wait for the compositor to finish reading from the oldest unwaited acquired image.
     ///
     /// Calls [`wait_image`](openxr::Swapchain::wait_image) internally.
-    pub fn wait_image(&mut self, timeout: openxr::Duration) -> Result<()> {
+    pub fn wait_image(&mut self, timeout: openxr::Duration) -> crate::types::Result<()> {
         graphics_match!(
             &mut self.0;
             swap => Ok(swap.wait_image(timeout)?)
@@ -253,7 +253,7 @@ impl OxrSwapchain {
     /// Release the oldest acquired image.
     ///
     /// Calls [`release_image`](openxr::Swapchain::release_image) internally.
-    pub fn release_image(&mut self) -> Result<()> {
+    pub fn release_image(&mut self) -> crate::types::Result<()> {
         graphics_match!(
             &mut self.0;
             swap => Ok(swap.release_image()?)
@@ -268,7 +268,7 @@ impl OxrSwapchain {
         device: &wgpu::Device,
         format: wgpu::TextureFormat,
         resolution: UVec2,
-    ) -> Result<OxrSwapchainImages> {
+    ) -> crate::types::Result<OxrSwapchainImages> {
         graphics_match!(
             &self.0;
             swap => {

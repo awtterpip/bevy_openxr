@@ -3,8 +3,8 @@ use std::ptr;
 
 use bevy::ecs::schedule::ScheduleLabel;
 use bevy::ecs::system::RunSystemOnce;
+use bevy::platform_support::collections::HashMap;
 use bevy::prelude::*;
-use bevy::utils::HashMap;
 use bevy_mod_xr::session::XrSessionCreatedEvent;
 use openxr::sys::ActionSuggestedBinding;
 
@@ -29,7 +29,7 @@ pub(crate) fn run_action_binding_sugestion(world: &mut World) {
 }
 
 fn bind_actions(instance: Res<OxrInstance>, mut actions: EventReader<OxrSuggestActionBinding>) {
-    let mut bindings: HashMap<&str, Vec<ActionSuggestedBinding>> = HashMap::new();
+    let mut bindings: HashMap<&str, Vec<ActionSuggestedBinding>, _> = HashMap::new();
     for e in actions.read() {
         bindings.entry(&e.interaction_profile).or_default().extend(
             e.bindings

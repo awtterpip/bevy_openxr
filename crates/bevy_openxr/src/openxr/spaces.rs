@@ -1,6 +1,8 @@
 use std::{mem::MaybeUninit, ptr, sync::Mutex};
 
-use bevy::{prelude::*, utils::hashbrown::HashSet};
+use bevy::{prelude::*};
+use bevy::platform_support::*;
+use bevy::platform_support::hash::FixedHasher;
 use bevy_mod_xr::{
     session::{XrFirst, XrHandleEvents},
     spaces::{
@@ -64,7 +66,7 @@ fn destroy_space_event(instance: Res<OxrInstance>, mut events: EventReader<XrDes
     }
 }
 
-pub static OXR_DO_NOT_CALL_DESTOY_SPACE_FOR_SPACES: Mutex<Option<HashSet<u64>>> = Mutex::new(None);
+pub static OXR_DO_NOT_CALL_DESTOY_SPACE_FOR_SPACES: Mutex<Option<bevy::platform_support::collections::hash_set::HashSet<u64, bevy::platform_support::hash::RandomState>>> = Mutex::new(None);
 pub static OXR_ORIGINAL_DESTOY_SPACE: Mutex<Option<openxr::sys::pfn::DestroySpace>> =
     Mutex::new(None);
 
@@ -72,7 +74,7 @@ fn patch_destroy_space(instance: ResMut<OxrInstance>) {
     OXR_DO_NOT_CALL_DESTOY_SPACE_FOR_SPACES
         .lock()
         .unwrap()
-        .replace(HashSet::new());
+        .replace(bevy::platform_support::collections::hash_set::HashSet::new());
     let raw_instance_ptr = instance.fp() as *const _ as *mut openxr::raw::Instance;
     unsafe {
         OXR_ORIGINAL_DESTOY_SPACE

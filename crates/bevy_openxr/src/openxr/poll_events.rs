@@ -30,7 +30,7 @@ pub fn poll_events(world: &mut World) {
         let event = Rc::new(RefCell::new(Some(event)));
         for handler in handlers.handlers.iter() {
             if let Err(err) =
-                world.run_system_with_input::<_, ()>(*handler, OxrEvent::new(event.clone()))
+                world.run_system_with::<_, ()>(*handler, OxrEvent::new(event.clone()))
             {
                 error!("error when running oxr event handler: {err}");
             };

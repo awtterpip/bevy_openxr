@@ -3,8 +3,9 @@ use std::sync::atomic::AtomicBool;
 use std::sync::Arc;
 
 use bevy::app::{AppExit, MainScheduleOrder};
-use bevy::ecs::component::StorageType;
+use bevy::ecs::component::{HookContext, Mutable, StorageType};
 use bevy::ecs::schedule::ScheduleLabel;
+use bevy::ecs::world::DeferredWorld;
 use bevy::prelude::*;
 use bevy::render::extract_resource::{ExtractResource, ExtractResourcePlugin};
 use bevy::render::{Render, RenderApp, RenderSet};
@@ -96,26 +97,21 @@ pub struct XrTrackingRoot;
 struct TrackingRootRes(Entity);
 
 /// Makes the entity a child of the XrTrackingRoot if the entity has no parent
-#[derive(Clone, Copy, Hash, PartialEq, Eq, Reflect, Debug, Default)]
+#[derive(Clone, Copy, Hash, PartialEq, Eq, Reflect, Debug, Default, Component)]
+#[component(on_add = on_tracker_add)]
 pub struct XrTracker;
-impl Component for XrTracker {
-    const STORAGE_TYPE: StorageType = StorageType::SparseSet;
-
-    fn register_component_hooks(hooks: &mut bevy::ecs::component::ComponentHooks) {
-        hooks.on_add(|mut world, entity, _| {
-            if world
-                .entity(entity)
-                .get_components::<Has<Parent>>()
-                .is_some_and(identity)
-            {
-                return;
-            }
-            let Some(root) = world.get_resource::<TrackingRootRes>().map(|r| r.0) else {
-                return;
-            };
-            world.commands().entity(root).add_child(entity);
-        });
+fn on_tracker_add(mut world: DeferredWorld, HookContext { entity, .. }: HookContext) {
+    if world
+        .entity(entity)
+        .get_components::<Has<Children>>()
+        .is_some_and(identity)
+    {
+        return;
     }
+    let Some(root) = world.get_resource::<TrackingRootRes>().map(|r| r.0) else {
+        return;
+    };
+    world.commands().entity(root).add_child(entity);
 }
 
 pub struct XrSessionPlugin {

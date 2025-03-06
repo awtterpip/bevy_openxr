@@ -3,6 +3,7 @@ use std::ffi::{c_void, CString};
 use ash::vk::Handle;
 use bevy::log::{debug, error};
 use bevy::math::UVec2;
+use bevy::render::render_resource::TextureFormat;
 use openxr::{sys, Version};
 use wgpu_hal::api::Vulkan;
 use wgpu_hal::Api;
@@ -115,7 +116,6 @@ unsafe impl GraphicsExt for openxr::Vulkan {
             <Vulkan as Api>::Instance::desired_extensions(&vk_entry, VK_TARGET_VERSION_ASH, flags)?;
         let device_extensions = [
             ash::khr::swapchain::NAME,
-            #[cfg(target_os = "android")]
             ash::khr::draw_indirect_count::NAME,
             ash::khr::timeline_semaphore::NAME,
             ash::khr::imageless_framebuffer::NAME,
@@ -756,5 +756,8 @@ fn wgpu_to_vulkan(format: wgpu::TextureFormat) -> Option<ash::vk::Format> {
                 AstcBlock::B12x12 => F::ASTC_12X12_SFLOAT_BLOCK_EXT,
             },
         },
+        TextureFormat::R64Uint => {
+            panic!()
+        }
     })
 }

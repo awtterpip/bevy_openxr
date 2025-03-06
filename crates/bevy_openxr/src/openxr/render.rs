@@ -1,10 +1,11 @@
+use bevy::render::camera::CustomProjection;
 use bevy::{
     prelude::*,
     render::{
         camera::{ManualTextureView, ManualTextureViewHandle, ManualTextureViews, RenderTarget},
         extract_resource::ExtractResourcePlugin,
         pipelined_rendering::PipelinedRenderingPlugin,
-        view::ExtractedView,
+        view::{ExtractedView, NoFrustumCulling},
         Render, RenderApp,
     },
     transform::TransformSystem,
@@ -170,6 +171,8 @@ pub fn init_views<const SPAWN_CAMERAS: bool>(
                     ..Default::default()
                 },
                 XrCamera(index),
+                Projection::custom(XrProjection::default()),
+                NoFrustumCulling,
             ));
         }
     }
@@ -244,16 +247,26 @@ pub fn locate_views(
 }
 
 pub fn update_views(
-    mut query: Query<(&mut Transform, &mut XrProjection, &XrCamera)>,
+    mut query: Query<(&mut Transform, &mut Projection, &XrCamera)>,
     views: ResMut<OxrViews>,
 ) {
     for (mut transform, mut projection, camera) in query.iter_mut() {
+        println!("we have this query");
         let Some(view) = views.get(camera.0 as usize) else {
             continue;
+        };
+        let projection = match projection.as_mut() {
+            Projection::Custom(custom) => custom.get_mut::<XrProjection>().unwrap(),
+            _ => unreachable!(),
         };
 
         let projection_matrix = calculate_projection(projection.near, view.fov);
         projection.projection_matrix = projection_matrix;
+
+        println!(
+            "Updateing projectinon matrix to: {:#?}",
+            projection.projection_matrix
+        );
 
         let openxr::Quaternionf { x, y, z, w } = view.pose.orientation;
         let rotation = Quat::from_xyzw(x, y, z, w);
