@@ -104,6 +104,7 @@ impl Plugin for OxrInitPlugin {
                                 RenderInstance(Arc::new(WgpuWrapper::new(wgpu_instance))),
                             ),
                             synchronous_pipeline_compilation: self.synchronous_pipeline_compilation,
+                            debug_flags: Default::default(),
                         },
                         ExtractResourcePlugin::<OxrSessionStarted>::default(),
                     ))
@@ -206,7 +207,7 @@ fn detect_session_destroyed(
 impl OxrInitPlugin {
     fn init_xr(
         &self,
-    ) -> Result<(
+    ) -> crate::types::Result<(
         OxrInstance,
         OxrSystemId,
         WgpuGraphics,
@@ -351,7 +352,7 @@ fn init_xr_session(
         resolutions,
         graphics_info,
     }: SessionConfigInfo,
-) -> Result<(
+) -> crate::types::Result<(
     OxrSession,
     OxrFrameWaiter,
     OxrFrameStream,

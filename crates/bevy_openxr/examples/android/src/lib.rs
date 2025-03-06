@@ -26,6 +26,7 @@ fn main() {
         .insert_resource(AmbientLight {
             color: Default::default(),
             brightness: 500.0,
+            affects_lightmapped_meshes: false,
         })
         .insert_resource(ClearColor(Color::NONE))
         .run();
